@@ -6,7 +6,6 @@ let noteID = 0
 //Actions
 
 export function addnote(note) {
-    console.log('LLL', note)
     return {
         type: ADD_NOTE,
         id: noteID++,
