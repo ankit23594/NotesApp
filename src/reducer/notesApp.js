@@ -1,5 +1,6 @@
 export const ADD_NOTE = 'ADD_NOTE'
 export const DELETE_NOTE = 'DELETE_NOTE'
+export const EDIT_NOTE = 'EDIT_NOTE'
 
 let noteID = 0
 
@@ -20,6 +21,14 @@ export function deletenote(id) {
     }
 }
 
+export function editnote(id, note) {
+    return {
+        type: EDIT_NOTE,
+        id,
+        note
+    }
+}
+
 // Reducers
 
 function notesReducer(state = [], action) {
@@ -35,6 +44,14 @@ function notesReducer(state = [], action) {
 
         case DELETE_NOTE:
             return [...state.filter(data => data.id != action.payload)]
+
+        case EDIT_NOTE:
+            let newData = [{
+                id: action.id,
+                note: action.note
+            }, ...state.filter(data => data.id != action.id)]
+
+            return newData
 
         default:
             return state

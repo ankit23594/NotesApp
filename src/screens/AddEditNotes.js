@@ -1,16 +1,36 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Text, IconButton, TextInput, FAB } from 'react-native-paper'
 import Header from '../component/Header'
 
-function AddNotes({ navigation }) {
-    const [noteTitle, setNoteTitle] = useState('')
-    const [noteDescription, setNoteDescription] = useState('')
+function AddEditNotes(props) {
+    let { navigation } = props
+    let { note, addNote, editNote } = navigation.state.params
+
+    const [noteTitle, setNoteTitle] = useState(note ? note.note.noteTitle : '')
+    const [noteDescription, setNoteDescription] = useState(note ? note.noteDescription : '')
 
     let onSaveNote = () => {
-        navigation.state.params.addNote({ noteTitle, noteDescription })
+        let result = { noteTitle, noteDescription }
+
+        if (addNote) addNote(result)
+        else if (editNote) editNote(note.id, result)
+
         navigation.goBack()
     }
+
+    useEffect(()=> {
+        if(note) {
+            if(note.note.noteTitle !== noteTitle)
+                setNoteTitle(note.note.noteTitle)
+            if(note.note.noteDescription !== noteDescription)
+                setNoteDescription(note.note.noteDescription)
+        } else {
+            setNoteTitle('')
+            setNoteDescription('')
+        }
+    }
+    , [note])
 
     return (
         <>
@@ -69,11 +89,6 @@ const styles = StyleSheet.create({
         top: 20,
         margin: 10
     },
-    titleContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 1
-    },
     title: {
         fontSize: 24,
         marginBottom: 16
@@ -92,4 +107,4 @@ const styles = StyleSheet.create({
 
 })
 
-export default AddNotes
+export default AddEditNotes

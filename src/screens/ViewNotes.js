@@ -1,21 +1,62 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet, View, FlatList } from 'react-native'
-import { Text, FAB, List } from 'react-native-paper'
+import { Text, FAB, Card, IconButton, Colors, Searchbar } from 'react-native-paper'
 import Header from '../component/Header'
 import { useSelector, useDispatch } from 'react-redux'
-import { addnote, deletenote } from '../reducer/notesApp'
+import { addnote, deletenote, editnote } from '../reducer/notesApp'
 
 const ViewNotes = ({ navigation }) => {
-  let notes = useSelector(state => state)
+  let notesProp = useSelector(state => state)
+
+  const [notes, setNotes] = useState(notesProp)
+  const [searchQuery, setSearchQuery] = useState('')
+
   const dispatch = useDispatch()
 
   const addNote = note => dispatch(addnote(note))
 
-  const deleteNote = id =>dispatch(deletenote(id))
+  const deleteNote = id => dispatch(deletenote(id))
+
+  const editNote = (id, note) => dispatch(editnote(id, note))
+
+  const onChangeSearch = query => {
+      if(query === '') setNotes(notesProp)
+      setSearchQuery(query)
+  }
+
+  const handleSearch = query => {
+    let searchText = query.nativeEvent.text
+
+    let newData = notes.filter(item => {
+        return (
+            item.note.noteDescription.toLowerCase().includes(searchText.toLowerCase()) || 
+            item.note.noteTitle.toLowerCase().includes(searchText.toLowerCase())
+        )
+      })
+
+    setNotes(newData)
+  }
+
+  const onSubmitSearch = query => handleSearch(query)
+
+  useEffect(()=> {
+    if(notesProp !== notes){
+        setNotes(notesProp)
+        setSearchQuery('')
+    }
+  }, [notesProp])
 
     return (
       <>
         <Header titleText='Note App' />
+        <Searchbar
+            placeholder="Search"
+            autoCorrect={false}
+            autoCapitalize='none'
+            onChangeText={onChangeSearch}
+            value={searchQuery}
+            onSubmitEditing={onSubmitSearch}
+        />
         <View style={styles.container}>
             {notes.length === 0 ? (
                 <View style={styles.titleContainer}>
@@ -25,13 +66,20 @@ const ViewNotes = ({ navigation }) => {
                     <FlatList
                         data={notes}
                         renderItem={({ item }) => (
-                            <List.Item
-                                title={item.note.noteTitle}
-                                description={item.note.noteDescription}
-                                descriptionNumberOfLines={1}
-                                titleStyle={styles.listTitle}
-                                onPress = {()=> deleteNote(item.id)}
-                            />
+                            <Card elevation={4} key={item.id} onPress = {()=> navigation.navigate('AddEditNotes', { note: item, editNote })}>
+                                <Card.Title
+                                    title={item.note.noteTitle}
+                                    subtitle={item.note.noteDescription}
+                                    right={props => 
+                                    <IconButton
+                                        icon="delete"
+                                        color={Colors.red500}
+                                        size={20}
+                                        onPress={()=> deleteNote(item.id)}
+                                      />
+                                    }
+                                />
+                            </Card>
                         )}
                         keyExtractor={item => item.id.toString()}
                     />
@@ -42,7 +90,7 @@ const ViewNotes = ({ navigation }) => {
                 small
                 icon='plus'
                 label='Add a new Note'
-                onPress={() => navigation.navigate('AddNotes', { addNote })
+                onPress={() => navigation.navigate('AddEditNotes', { addNote })
                 }
             />
         </View>
@@ -71,11 +119,7 @@ const ViewNotes = ({ navigation }) => {
         margin: 20,
         right: 0,
         bottom: 10
-    },
-    listTitle: {
-        fontSize: 20
     }
-
 })
 
   export default ViewNotes
